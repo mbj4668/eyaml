@@ -13,14 +13,15 @@ eyaml is a NIF-based YAML 1.2 parser, based on the
 
 The different YAML tags are mapped to erlang types as follows:
 
-`tag:yaml.org,2002:map` → `map() | list({term(), term()})`
-`tag:yaml.org,2002:seq` → `list()`
-`tag:yaml.org,2002:str` → `binary()`
-
-`tag:yaml.org,2002:null` → `'null'`
-`tag:yaml.org,2002:bool` → `boolean()`
-`tag:yaml.org,2002:int` → `integer()`
-`tag:yaml.org,2002:float` → `float() | 'nan'| 'inf' | '-inf'`
+YAML tag                  | Erlang type
+--------------------------|----------------------------------
+`tag:yaml.org,2002:map`   | `map() \| list({term(), term()})`
+`tag:yaml.org,2002:seq`   | `list()`
+`tag:yaml.org,2002:str`   | `binary()`
+`tag:yaml.org,2002:null`  | `'null'`
+`tag:yaml.org,2002:bool`  | `boolean()`
+`tag:yaml.org,2002:int`   | `integer()`
+`tag:yaml.org,2002:float` | `float() \| 'nan' \| 'inf' \| '-inf'`
 
 A YAML mapping is by default represented as an Erlang map, unless the
 option `mapping_as_list` is given, in which case the mapping is
