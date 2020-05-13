@@ -33,13 +33,12 @@ If the option `key_as_atom` is given, mapping string keys are
 converted to existing atoms.  If the atom doesn't exist, the mapping
 string key is returned as a binary().
 
-This option is usedful when the schema for the YAML document is known,
+This option is useful when the schema for the YAML document is known,
 and all keys are already present in the code.
 
-Note that when this option is
-used, mappings with string keys "null", "inf", "-inf", "nan", "true",
-and "false" will be converted to atoms, even if they are quoted
-strings in the YAML input.
+Note that when this option is used, mappings with string keys "null",
+"inf", "-inf", "nan", "true", and "false" will be converted to atoms,
+even if they are quoted strings in the YAML input.
 
 ## API
 
@@ -195,6 +194,6 @@ Convert YAML mappings into Erlang lists.
 
 ### Run tests
 
-    make enuint
+    make eunit
 
     make dialyze
