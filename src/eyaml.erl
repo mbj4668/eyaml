@@ -3,6 +3,8 @@
 -export([parse/1, parse/2,
          parse_file/1, parse_file/2]).
 
+-export_type([eyaml/0, eyaml_seq/0, eyaml_map/0, eyaml_scalar/0]).
+
 -on_load(load_nif/0).
 
 -define(SCHEMA_FAIL_SAFE, 1).
