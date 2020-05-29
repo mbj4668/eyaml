@@ -39,7 +39,7 @@ static ErlNifResourceType *eyaml_state_res_type = NULL;
 #define SCHEMA_JSON 2
 #define SCHEMA_CORE 3
 
-#define F_KEY_AS_ATOM (1 << 0)
+#define F_KEY_AS_EXISTING_ATOM (1 << 0)
 
 static ERL_NIF_TERM am_sequence_start;
 static ERL_NIF_TERM am_sequence_end;
@@ -378,7 +378,7 @@ mk_scalar(ErlNifEnv *env,
             }
         }
     }
-    if ((F_KEY_AS_ATOM & es->flags) && is_map_key) {
+    if ((F_KEY_AS_EXISTING_ATOM & es->flags) && is_map_key) {
         if (enif_make_existing_atom_len(env, value, length,
                                         &ret, ERL_NIF_LATIN1)) {
             return ret;

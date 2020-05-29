@@ -72,7 +72,7 @@ parse_test2_test() ->
                      {pulseDuration,10},
                      {repetition,500},
                      {spotSize,<<"2mm">>}]}]]]},
-       eyaml:parse_file(FileName, #{key_as_atom => true,
+       eyaml:parse_file(FileName, #{key_as_existing_atom => true,
                                     mapping_as_list => true})).
 
 parse_test3_test() ->

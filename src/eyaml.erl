@@ -11,7 +11,7 @@
 -define(SCHEMA_JSON, 2).
 -define(SCHEMA_CORE, 3).
 
--define(F_KEY_AS_ATOM, 1 bsl 0).
+-define(F_KEY_AS_EXISTING_ATOM, 1 bsl 0).
 -define(F_MAPPING_AS_LIST, 1 bsl 1).
 
 -define(bit_is_set(Fs, F), ((Fs) band (F) =/= 0)). % any bit in F is set in Fs
@@ -20,7 +20,7 @@
 
 -type eyaml_seq() :: [eyaml()].
 
-%% atom() below is only returned if parsing with option `key_as_atom`.
+%% atom() below is only returned if parsing with option `key_as_existing_atom`.
 %% KVL below is only returned if parsing with option `mapping_as_list`.
 -type eyaml_map() :: #{eyaml() | atom() => eyaml()}
                    | [{eyaml() | atom(), eyaml()}].
@@ -37,7 +37,7 @@
 
 -type core_scalar() :: json_scalar().
 
-%% 'key_as_atom' means that strings in mappings keys are converted
+%% 'key_as_existing_atom' means that strings in mappings keys are converted
 %%     to existing atoms, otherwise they are binaries.
 %%     The idea is that this is a useful option when the schema for
 %%     the YAML document is known, and all keys are already present in
@@ -58,13 +58,13 @@
 %%     schema is 'core'.
 %%         'fail_safe' means that all scalars are treated as strings,
 %%             and thus returned as binaries (except mapping keys, if
-%%             'key_as_atom' is set).
+%%             'key_as_existing_atom' is set).
 %%         'json' also supports integers, floats, booleans and null.
 %%         'core' supports the same types a 'json', but allows more
 %%             lexical variation in the tokens (e.g., both "true" and
 %%             "True" are accepted, and integers can be written in
 %%             hex or octal forms).
--type parse_opts() :: #{'key_as_atom' => boolean(),
+-type parse_opts() :: #{'key_as_existing_atom' => boolean(),
                         'mapping_as_list' => boolean(),
                         'schema' => 'fail_safe' | 'json' | 'core'}.
 
@@ -162,9 +162,9 @@ parse_opts(Opts) ->
                 ?SCHEMA_CORE
         end,
     Flags =
-        case maps:get(key_as_atom, Opts, false) of
+        case maps:get(key_as_existing_atom, Opts, false) of
             true ->
-                ?F_KEY_AS_ATOM;
+                ?F_KEY_AS_EXISTING_ATOM;
             false ->
                 0
         end

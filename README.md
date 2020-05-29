@@ -29,7 +29,7 @@ represented as a key-value list.
 
 In the `fail_safe` schema, all scalars are represented as binaries.
 
-If the option `key_as_atom` is given, mapping string keys are
+If the option `key_as_existing_atom` is given, mapping string keys are
 converted to existing atoms.  If the atom doesn't exist, the mapping
 string key is returned as a binary().
 
@@ -70,17 +70,17 @@ Eshell V10.6.4  (abort with ^G)
 {ok,[#{<<"foo">> => 42}]}
 ```
 
-## Option `key_as_atom`
+## Option `key_as_existing_atom`
 
 Converts mapping keys that are strings to existing atoms.
 
 ```erlang
-2>  a,b,eyaml:parse(<<"a: 1\n'b': -3.0\nxyzu: 42">>, #{key_as_atom => true}).
+2>  a,b,eyaml:parse(<<"a: 1\n'b': -3.0\nxyzu: 42">>, #{key_as_existing_atom => true}).
 {ok,[#{a => 1,
        b => -3.0,
        <<"xyzu">> => 42}]}
 
-3> eyaml:parse(<<"[1, 42: foo, a: b]: 42">>, #{key_as_atom => true}).
+3> eyaml:parse(<<"[1, 42: foo, a: b]: 42">>, #{key_as_existing_atom => true}).
 {ok,[#{[1, #{42 => <<"foo">>}, #{a => <<"b">>}] => 42}]}
 
 ```
@@ -90,7 +90,7 @@ Parse a file with anchors and aliases.
 ```erlang
 4> step,instrument,pulseDuration,repetition,pulseEnergy,spotSize.
 
-5> eyaml:parse_file("test/test2.yaml", #{key_as_atom => true}).
+5> eyaml:parse_file("test/test2.yaml", #{key_as_existing_atom => true}).
 {ok,[[#{step =>
             #{instrument => <<"Lasik 2000">>,
               pulseDuration => 12,
@@ -138,7 +138,7 @@ Convert YAML mappings into Erlang lists.
 ```erlang
 
 6> eyaml:parse_file("test/test2.yaml",
-   #{key_as_atom => true, mapping_as_list => true}).
+   #{key_as_existing_atom => true, mapping_as_list => true}).
 {ok,[[[{step,[{instrument,<<"Lasik 2000">>},
               {pulseEnergy,5.4},
               {pulseDuration,12},
