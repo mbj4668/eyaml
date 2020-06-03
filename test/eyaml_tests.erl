@@ -9,14 +9,6 @@ test_file_path(File) ->
         _ -> filename:join(["..", "test", File])
     end.
 
-temp_file_path() ->
-    case filelib:is_dir("test") of
-        true ->
-            filename:join(["test", "temp_test.yaml"]);
-        _ ->
-            filename:join(["..", "test", "temp_test.yaml"])
-    end.
-
 parse_test1_test() ->
     FileName = test_file_path("test1.yaml"),
     ?assertEqual(
