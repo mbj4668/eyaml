@@ -48,9 +48,6 @@ See [eyaml.erl](src/eyaml.erl).
 
 ### Dependencies
 
-eyaml depends on [libyaml](https://pyyaml.org/wiki/LibYAML).  You need
-development headers for this library to build eyaml.
-
 The minimum required Erlang/OTP version is 18.0
 
 ### Generic build
