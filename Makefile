@@ -1,7 +1,7 @@
 PROJECT = eyaml
 PROJECT_VERSION = 0.1
 
-DEPS     = libyaml
+BUILD_DEPS     = libyaml
 LIBYAML_VSN ?= 0.2.5
 dep_libyaml = git https://github.com/yaml/libyaml $(LIBYAML_VSN)
 
