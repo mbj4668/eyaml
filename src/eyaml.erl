@@ -1,7 +1,8 @@
 -module(eyaml).
 
 -export([parse/1, parse/2,
-         parse_file/1, parse_file/2]).
+         parse_file/1, parse_file/2,
+         fmt_error/1, fmt_err/1]).
 
 -export_type([eyaml/0, eyaml_seq/0, eyaml_map/0, eyaml_scalar/0]).
 
@@ -70,8 +71,14 @@
 
 -type parse_ret() ::
         {ok, Documents :: [eyaml()]}
-      | {error, Line :: integer(), {no_such_anchor, Anchor :: binary()}
-                                 | binary()}.
+      | parse_error().
+
+-type parse_error() ::
+        {error, Line :: integer(), parse_err()}.
+
+-type parse_err() ::
+        {no_such_anchor, Anchor :: binary()}
+      | binary().
 
 -spec parse(Str :: iodata()) -> parse_ret().
 parse(Str) ->
@@ -104,6 +111,16 @@ parse_file(FName, Opts) when is_map(Opts) ->
         Error ->
             Error
     end.
+
+-spec fmt_error(parse_error()) -> iodata().
+fmt_error({error, Line, Err}) ->
+    io_lib:format("~w: ~s", [Line, fmt_err(Err)]).
+
+-spec fmt_err(parse_err()) -> iodata().
+fmt_err({no_such_anchor, Anchor}) ->
+    ["no such anchor: ", Anchor];
+fmt_err(ErrStr) ->
+    ErrStr.
 
 %%% Internal functions
 
