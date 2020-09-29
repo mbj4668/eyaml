@@ -303,6 +303,7 @@ mk_number(ErlNifEnv *env,
     errno = 0;
     d = strtod(startptr, &endptr);
     if (*endptr == '\0'
+        && isfinite(d)
         && !((errno == ERANGE && (d == HUGE_VAL || d == -HUGE_VAL))
              || (errno != 0 && d == 0))) {
         *ret = enif_make_double(env, d);
