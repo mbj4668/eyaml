@@ -80,6 +80,9 @@
         {no_such_anchor, Anchor :: binary()}
       | binary().
 
+-type read_file_error() ::
+        {error, file:posix() | badarg | terminated | system_limit}.
+
 -spec parse(Str :: iodata()) -> parse_ret().
 parse(Str) ->
     parse(Str, #{}).
@@ -101,9 +104,13 @@ parse(Str, Opts) ->
             Error
     end.
 
+-spec parse_file(FName :: file:name_all()) ->
+        parse_ret() | read_file_error().
 parse_file(FName) ->
     parse_file(FName, #{}).
 
+-spec parse_file(FName :: file:name_all(), parse_opts()) ->
+        parse_ret() | read_file_error().
 parse_file(FName, Opts) when is_map(Opts) ->
     case file:read_file(FName) of
         {ok, Bin} ->
@@ -112,9 +119,11 @@ parse_file(FName, Opts) when is_map(Opts) ->
             Error
     end.
 
--spec fmt_error(parse_error()) -> iodata().
+-spec fmt_error(parse_error() | read_file_error()) -> iodata().
 fmt_error({error, Line, Err}) ->
-    io_lib:format("~w: ~s", [Line, fmt_err(Err)]).
+    io_lib:format("~w: ~s", [Line, fmt_err(Err)]);
+fmt_error({error, Reason}) ->
+    file:format_error(Reason).
 
 -spec fmt_err(parse_err()) -> iodata().
 fmt_err({no_such_anchor, Anchor}) ->
