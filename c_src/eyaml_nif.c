@@ -113,7 +113,7 @@ upgrade(ErlNifEnv* env,
 }
 
 /* Invoked by libyaml when more data is needed.
- * Fill from es->input, keep track of offet.
+ * Fill from es->input, keep track of offset.
  */
 static int
 read_handler(void *data,
@@ -227,7 +227,7 @@ mk_anchor(ErlNifEnv *env,
 
 /*
  * YAML is rather specific about how numbers are represented.
- * Specifically, it's representation is not compatible with strtol(),
+ * Specifically, its representation is not compatible with strtol(),
  * so we need additional code to capture these cases.
  *
  * NOTE: we don't handle bignums.
