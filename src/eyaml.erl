@@ -98,7 +98,8 @@ parse(Str, Opts) ->
     {Schema, Flags} = parse_opts(Opts),
     Res = init(Schema, Flags),
     try
-        {ok, parse_loop({Res, Bin, Flags, new_anchors()}, [], false)}
+        {Term, _} = parse_loop({Res, Bin, Flags}, new_anchors(), [], false),
+        {ok, Term}
     catch
         throw:Error ->
             Error
@@ -133,48 +134,48 @@ fmt_err(ErrStr) ->
 
 %%% Internal functions
 
-parse_loop(S, Acc, IsMapKey) ->
-    {Res, Bin, Flags, Anchors} = S,
+parse_loop(S, Anchors0, Acc, IsMapKey) ->
+    {Res, Bin, Flags} = S,
     Event = get_next_event(Res, Bin, int_from_bool(IsMapKey)),
     case Event of
         {sequence_start, Anchor} ->
-            Term = parse_loop(S, [], false),
-            add_anchor(Anchor, Term, Anchors),
-            parse_loop(S, [Term | Acc], not IsMapKey);
+            {Term, Anchors1} = parse_loop(S, Anchors0, [], false),
+            Anchors2 = add_anchor(Anchor, Term, Anchors1),
+            parse_loop(S, Anchors2, [Term | Acc], not IsMapKey);
         sequence_end ->
-            lists:reverse(Acc);
+            {lists:reverse(Acc), Anchors0};
         {mapping_start, Anchor} ->
-            Term = parse_loop(S, [], true),
-            add_anchor(Anchor, Term, Anchors),
-            parse_loop(S, [Term | Acc], not IsMapKey);
+            {Term, Anchors1} = parse_loop(S, Anchors0, [], true),
+            Anchors2 = add_anchor(Anchor, Term, Anchors1),
+            parse_loop(S, Anchors2, [Term | Acc], not IsMapKey);
         mapping_end ->
-            mk_map(Acc, Flags);
+            {mk_map(Acc, Flags), Anchors0};
         {scalar, Anchor, Term} ->
-            add_anchor(Anchor, Term, Anchors),
-            parse_loop(S, [Term | Acc], not IsMapKey);
+            Anchors1 = add_anchor(Anchor, Term, Anchors0),
+            parse_loop(S, Anchors1, [Term | Acc], not IsMapKey);
         {alias, Anchor, Line} ->
-            Term = get_anchor(Anchor, Line, Anchors),
-            parse_loop(S, [Term | Acc], not IsMapKey);
+            Term = get_anchor(Anchor, Line, Anchors0),
+            parse_loop(S, Anchors0, [Term | Acc], not IsMapKey);
         eof ->
-            lists:reverse(Acc);
+            {lists:reverse(Acc), Anchors0};
         Error ->
             throw(Error)
     end.
 
 new_anchors() ->
-    ets:new(eyaml_anchors, []).
+    #{}.
 
-add_anchor(undefined, _Term, _Anchors) ->
-    ok;
+add_anchor(undefined, _Term, Anchors) ->
+    Anchors;
 add_anchor(Anchor, Term, Anchors) ->
-    ets:insert(Anchors, {Anchor, Term}).
+    Anchors#{Anchor => Term}.
 
 get_anchor(Anchor, Line, Anchors) ->
-    case ets:lookup(Anchors, Anchor) of
-        [{_, Term}] ->
-            Term;
-        [] ->
-            throw({error, Line, {no_such_anchor, Anchor}})
+    case maps:get(Anchor, Anchors, undefined) of
+        undefined ->
+            throw({error, Line, {no_such_anchor, Anchor}});
+        Term ->
+            Term
     end.
 
 parse_opts(Opts) ->
