@@ -209,3 +209,10 @@ parse_core_test() ->
                   [inf, '-inf', inf, nan]
              }]},
        eyaml:parse_file(FileName, #{schema => core})).
+
+parse_list_test() ->
+    FileName = test_file_path("test9.yaml"),
+    ?assertEqual(
+       {ok,[#{module => [<<"burk">>, <<"ok">>, <<"bork">>]
+             }]},
+       eyaml:parse_file(FileName, #{key_as_existing_atom => true})).

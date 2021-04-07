@@ -98,7 +98,8 @@ parse(Str, Opts) ->
     {Schema, Flags} = parse_opts(Opts),
     Res = init(Schema, Flags),
     try
-        {Term, _} = parse_loop({Res, Bin, Flags}, new_anchors(), [], false),
+        {Term, _} =
+            parse_loop({Res, Bin, Flags}, new_anchors(), [], false, false),
         {ok, Term}
     catch
         throw:Error ->
@@ -134,28 +135,28 @@ fmt_err(ErrStr) ->
 
 %%% Internal functions
 
-parse_loop(S, Anchors0, Acc, IsMapKey) ->
+parse_loop(S, Anchors0, Acc, InMapping, IsMapKey) ->
     {Res, Bin, Flags} = S,
-    Event = get_next_event(Res, Bin, int_from_bool(IsMapKey)),
+    Event = get_next_event(Res, Bin, int_from_bool(InMapping andalso IsMapKey)),
     case Event of
         {sequence_start, Anchor} ->
-            {Term, Anchors1} = parse_loop(S, Anchors0, [], false),
+            {Term, Anchors1} = parse_loop(S, Anchors0, [], false, false),
             Anchors2 = add_anchor(Anchor, Term, Anchors1),
-            parse_loop(S, Anchors2, [Term | Acc], not IsMapKey);
+            parse_loop(S, Anchors2, [Term | Acc], InMapping, not IsMapKey);
         sequence_end ->
             {lists:reverse(Acc), Anchors0};
         {mapping_start, Anchor} ->
-            {Term, Anchors1} = parse_loop(S, Anchors0, [], true),
+            {Term, Anchors1} = parse_loop(S, Anchors0, [], true, true),
             Anchors2 = add_anchor(Anchor, Term, Anchors1),
-            parse_loop(S, Anchors2, [Term | Acc], not IsMapKey);
+            parse_loop(S, Anchors2, [Term | Acc], InMapping, not IsMapKey);
         mapping_end ->
             {mk_map(Acc, Flags), Anchors0};
         {scalar, Anchor, Term} ->
             Anchors1 = add_anchor(Anchor, Term, Anchors0),
-            parse_loop(S, Anchors1, [Term | Acc], not IsMapKey);
+            parse_loop(S, Anchors1, [Term | Acc], InMapping, not IsMapKey);
         {alias, Anchor, Line} ->
             Term = get_anchor(Anchor, Line, Anchors0),
-            parse_loop(S, Anchors0, [Term | Acc], not IsMapKey);
+            parse_loop(S, Anchors0, [Term | Acc], InMapping, not IsMapKey);
         eof ->
             {lists:reverse(Acc), Anchors0};
         Error ->
