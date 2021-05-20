@@ -159,7 +159,19 @@ parse_loop(S, Anchors0, Acc, InMapping, IsMapKey) ->
             parse_loop(S, Anchors0, [Term | Acc], InMapping, not IsMapKey);
         eof ->
             {lists:reverse(Acc), Anchors0};
-        Error ->
+        {error, Line, Problem, Line, Context} ->
+            EStr =
+                iolist_to_binary(
+                  io_lib:format("~s ~s",
+                                [Context, Problem])),
+            throw({error, Line, EStr});
+        {error, Line, Problem, CLine, Context} ->
+            EStr =
+                iolist_to_binary(
+                  io_lib:format("~s (starting at line ~w) ~s",
+                                [Context, CLine, Problem])),
+            throw({error, Line, EStr});
+        {error, _Line, _Problem} = Error ->
             throw(Error)
     end.
 

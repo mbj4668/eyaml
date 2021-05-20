@@ -392,11 +392,22 @@ static ERL_NIF_TERM
 mk_error(ErlNifEnv *env,
          yaml_parser_t *parser)
 {
-    return enif_make_tuple3(
-        env,
-        am_error,
-        enif_make_uint(env, parser->problem_mark.line),
-        mk_binary(env, parser->problem));
+    /* NOTE: line numbers start at 0 in libyaml! */
+    if (parser->context) {
+        return enif_make_tuple5(
+            env,
+            am_error,
+            enif_make_uint(env, parser->problem_mark.line + 1),
+            mk_binary(env, parser->problem),
+            enif_make_uint(env, parser->context_mark.line + 1),
+            mk_binary(env, parser->context));
+    } else {
+        return enif_make_tuple3(
+            env,
+            am_error,
+            enif_make_uint(env, parser->problem_mark.line + 1),
+            mk_binary(env, parser->problem));
+    }
 }
 
 static ERL_NIF_TERM
