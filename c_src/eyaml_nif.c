@@ -385,12 +385,6 @@ mk_scalar(ErlNifEnv *env,
             return ret;
         }
     }
-    /* if a literal or folded scalar ends with \n, remove it */
-    if ((style == YAML_LITERAL_SCALAR_STYLE
-         || style == YAML_FOLDED_SCALAR_STYLE)
-        && (length > 0) && (value[length-1] == '\n')) {
-        length--;
-    }
     return mk_binary_size(env, value, length);
 }
 

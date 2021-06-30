@@ -25,7 +25,7 @@ parse_test1_test() ->
              {<<"Stack">>,
               [[{<<"file">>,<<"TopClass.py">>},
                 {<<"line">>,23},
-                {<<"code">>,<<"x = MoreObject(\"345\\n\")">>}],
+                {<<"code">>,<<"x = MoreObject(\"345\\n\")\n">>}],
                [{<<"file">>,<<"MoreClass.py">>},
                 {<<"line">>,58},
                 {<<"code">>,<<"foo = bar">>}]]}]]},
@@ -85,7 +85,7 @@ parse_test4_test() ->
     ?assertEqual(
        {ok,[[{<<"picture">>,
               <<"R0lGODlhDAAMAIQAAP//9/X\n17unp5WZmZgAAAOfn515eXv\n"
-                "Pz7Y6OjuDg4J+fn5OTk6enp\n56enmleECcgggoBADs=mZmE">>}]]},
+                "Pz7Y6OjuDg4J+fn5OTk6enp\n56enmleECcgggoBADs=mZmE\n">>}]]},
        eyaml:parse_file(FileName, #{mapping_as_list => true})).
 
 parse_test5_test() ->
