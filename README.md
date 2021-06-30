@@ -40,6 +40,10 @@ Note that when this option is used, mappings with string keys "null",
 "inf", "-inf", "nan", "true", and "false" will be converted to atoms,
 even if they are quoted strings in the YAML input.
 
+In a multi-line string given in the literal or folded style, the
+trailing newline is removed (i.e., not present in the Erlang
+representation).
+
 ## API
 
 See [eyaml.erl](src/eyaml.erl).
