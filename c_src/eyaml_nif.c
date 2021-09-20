@@ -415,7 +415,7 @@ get_next_event_nif(ErlNifEnv* env,
                    int argc,
                    const ERL_NIF_TERM argv[])
 {
-    ERL_NIF_TERM anchor, scalar;
+    ERL_NIF_TERM anchor, scalar, ret;
     struct eyaml_state *es = NULL;
     yaml_event_t event;
     int res;
@@ -437,33 +437,44 @@ get_next_event_nif(ErlNifEnv* env,
     }
     switch (event.type) {
     case YAML_STREAM_END_EVENT:
-        return am_eof;
+        ret = am_eof;
+        break;
     case YAML_SEQUENCE_START_EVENT:
         anchor = mk_anchor(env, event.data.sequence_start.anchor);
-        return enif_make_tuple2(env, am_sequence_start, anchor);
+        ret = enif_make_tuple2(env, am_sequence_start, anchor);
+        break;
     case YAML_SEQUENCE_END_EVENT:
-        return am_sequence_end;
+        ret = am_sequence_end;
+        break;
     case YAML_MAPPING_START_EVENT:
         anchor = mk_anchor(env, event.data.mapping_start.anchor);
-        return enif_make_tuple2(env, am_mapping_start, anchor);
+        ret = enif_make_tuple2(env, am_mapping_start, anchor);
+        break;
     case YAML_MAPPING_END_EVENT:
-        return am_mapping_end;
+        ret = am_mapping_end;
+        break;
     case YAML_SCALAR_EVENT:
         anchor = mk_anchor(env, event.data.scalar.anchor);
         scalar = mk_scalar(env, &event, es, is_map_key);
-        return enif_make_tuple3(env, am_scalar, anchor, scalar);
+        ret = enif_make_tuple3(env, am_scalar, anchor, scalar);
+        break;
     case YAML_ALIAS_EVENT:
         anchor = mk_anchor(env, event.data.alias.anchor);
-        return enif_make_tuple3(env, am_alias, anchor,
-                                enif_make_uint(env, event.start_mark.line));
+        ret = enif_make_tuple3(env, am_alias, anchor,
+                               enif_make_uint(env, event.start_mark.line));
+        break;
     case YAML_NO_EVENT:
     case YAML_STREAM_START_EVENT:
     case YAML_DOCUMENT_START_EVENT:
     case YAML_DOCUMENT_END_EVENT:
         /* we don't care about these */
-        return get_next_event_nif(env, argc, argv);
+        ret = get_next_event_nif(env, argc, argv);
+        break;
+    default:
+        ret = enif_make_badarg(env);
     }
-    return enif_make_badarg(env);
+    yaml_event_delete(&event);
+    return ret;
 }
 
 static ErlNifFunc nif_funcs[] =
