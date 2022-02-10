@@ -30,15 +30,12 @@ represented as a key-value list.
 In the `fail_safe` schema, all scalars are represented as binaries.
 
 If the option `key_as_existing_atom` is given, mapping string keys are
-converted to existing atoms.  If the atom doesn't exist, the mapping
-string key is returned as a binary().
+converted to existing atoms.  If the atom doesn't exist, or if the
+atom is one of `true`, `false`, `null`, `nan`, `inf` or `-inf`, then
+the mapping string key is returned as a binary().
 
-This option is useful when the schema for the YAML document is known,
-and all keys are already present in the code.
-
-Note that when this option is used, mappings with string keys "null",
-"inf", "-inf", "nan", "true", and "false" will be converted to atoms,
-even if they are quoted strings in the YAML input.
+The `key_as_existing_atom` option is useful when the schema for the
+YAML document is known, and all keys are already present in the code.
 
 ## API
 
@@ -79,6 +76,10 @@ Converts mapping keys that are strings to existing atoms.
 
 3> eyaml:parse(<<"[1, 42: foo, a: b]: 42">>, #{key_as_existing_atom => true}).
 {ok,[#{[1, #{42 => <<"foo">>}, #{a => <<"b">>}] => 42}]}
+
+4> eyaml:parse(<<"true: .nan\n\"true\": \"null\"">>, #{key_as_existing_atom => true}).
+{ok,[#{true => nan,
+       <<"true">> => <<"null">>}]}
 
 ```
 

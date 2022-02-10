@@ -1,1 +1,11 @@
 module: [ burk, ok, bork ]
+true: false
+"true": .nan
+"false": ".nan"
+"nan": "null"
+nan: null
+.inf: inf
+"inf": inf
+inf: "-.inf"
+
+

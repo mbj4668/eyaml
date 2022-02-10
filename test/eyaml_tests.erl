@@ -213,6 +213,11 @@ parse_core_test() ->
 parse_list_test() ->
     FileName = test_file_path("test9.yaml"),
     ?assertEqual(
-       {ok,[#{module => [<<"burk">>, <<"ok">>, <<"bork">>]
-             }]},
+       {ok,[#{inf => <<"inf">>,
+              module => [<<"burk">>,<<"ok">>,<<"bork">>],
+              true => false,
+              <<"false">> => <<".nan">>,
+              <<"inf">> => <<"inf">>,
+              <<"nan">> => <<"null">>,
+              <<"true">> => nan}]},
        eyaml:parse_file(FileName, #{key_as_existing_atom => true})).

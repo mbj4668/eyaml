@@ -379,7 +379,16 @@ mk_scalar(ErlNifEnv *env,
             }
         }
     }
-    if ((F_KEY_AS_EXISTING_ATOM & es->flags) && is_map_key) {
+    if ((F_KEY_AS_EXISTING_ATOM & es->flags) && is_map_key &&
+        !((length == 3
+           && ((strncmp(value, "inf", length) == 0)
+               || (strncmp(value, "nan", length) == 0)))
+          || (length == 4
+              && ((strncmp(value, "null", length) == 0)
+                  || (strncmp(value, "true", length) == 0)
+                  || (strncmp(value, "-inf", length) == 0)))
+          || (length == 5
+              && (strncmp(value, "false", length) == 0)))) {
         if (enif_make_existing_atom_len(env, value, length,
                                         &ret, ERL_NIF_LATIN1)) {
             return ret;
