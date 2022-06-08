@@ -94,7 +94,7 @@ load(ErlNifEnv *env,
 {
     init_atoms(env);
     eyaml_state_res_type =
-        enif_open_resource_type(env, "eyaml", "state",
+        enif_open_resource_type(env, NULL, "eyaml_state",
                                 destroy_eyaml_state,
                                 ERL_NIF_RT_CREATE, NULL);
     if (eyaml_state_res_type == NULL)
