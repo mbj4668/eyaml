@@ -1,22 +1,14 @@
-PROJECT = eyaml
-PROJECT_VERSION = 0.1
-
-BUILD_DEPS     = libyaml
+BUILD_DEPS = libyaml
 LIBYAML_VSN ?= 0.2.5
 dep_libyaml = git https://github.com/yaml/libyaml $(LIBYAML_VSN)
 
-C_SRC_DIR = ./c_src
-C_SRC_OUTPUT = ./priv/eyaml_nif
+include erl.mk
 
-CFLAGS = -I $(DEPS_DIR)/libyaml/installed/include
-LDLIBS = $(DEPS_DIR)/libyaml/installed/lib/libyaml.a
-
-
-include erlang.mk
+erl.mk:
+	curl -s -O https://raw.githubusercontent.com/mbj4668/erl.mk/main/$@
 
 # we need to build the libyaml c-code w/ -fPIC even in the .a file.
-# perhaps there's a better way?
-autopatch-libyaml::
+dep_patch_libyaml::
 	cd $(DEPS_DIR)/libyaml && \
 	autoreconf -Wall -vif && \
 	./configure CFLAGS="-g -O2 -fPIC" \

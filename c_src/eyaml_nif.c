@@ -492,4 +492,4 @@ static ErlNifFunc nif_funcs[] =
     {"get_next_event", 3, get_next_event_nif}
 };
 
-ERL_NIF_INIT(eyaml, nif_funcs, load, NULL, upgrade, NULL);
+ERL_NIF_INIT(eyaml, nif_funcs, load, NULL, upgrade, NULL)

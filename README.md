@@ -49,7 +49,7 @@ The minimum required Erlang/OTP version is 18.0
 
 ### Generic build
 
-eyaml uses [erlang.mk](https://erlang.mk)
+eyaml uses [erl.mk](https://github.com/mbj4668/erl.mk)
 
     make
 
