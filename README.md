@@ -32,7 +32,7 @@ In the `fail_safe` schema, all scalars are represented as binaries.
 If the option `key_as_existing_atom` is given, mapping string keys are
 converted to existing atoms.  If the atom doesn't exist, or if the
 atom is one of `true`, `false`, `null`, `nan`, `inf` or `-inf`, then
-the mapping string key is returned as a binary().
+the mapping string key is returned as a binary.
 
 The `key_as_existing_atom` option is useful when the schema for the
 YAML document is known, and all keys are already present in the code.
