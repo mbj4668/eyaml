@@ -67,7 +67,8 @@
 %%             hex or octal forms).
 -type parse_opts() :: #{'key_as_existing_atom' => boolean(),
                         'mapping_as_list' => boolean(),
-                        'schema' => 'fail_safe' | 'json' | 'core'}.
+                        'schema' => 'fail_safe' | 'json' | 'core',
+                        'max_nodes' => pos_integer() | 'infinity'}.
 
 -type parse_ret() ::
         {ok, Documents :: [eyaml()]}
@@ -78,6 +79,7 @@
 
 -type parse_err() ::
         {no_such_anchor, Anchor :: binary()}
+      | too_many_nodes
       | binary().
 
 -type read_file_error() ::
@@ -96,10 +98,11 @@ parse(Str, Opts) ->
                 list_to_binary(Str)
         end,
     {Schema, Flags} = parse_opts(Opts),
+    Max = maps:get(max_nodes, Opts, infinity),
     Res = init(Schema, Flags),
     try
-        {Term, _} =
-            parse_loop({Res, Bin, Flags}, new_anchors(), [], false, false),
+        {Term, _, _} =
+            parse_loop({Res, Bin, Flags, Max}, new_anchors(), [], 0, false, false),
         {ok, Term}
     catch
         throw:Error ->
@@ -130,35 +133,43 @@ fmt_error({error, Reason}) ->
 -spec fmt_err(parse_err()) -> iodata().
 fmt_err({no_such_anchor, Anchor}) ->
     ["no such anchor: ", Anchor];
+fmt_err(too_many_nodes) ->
+    "too many nodes after alias expansion";
 fmt_err(ErrStr) ->
     ErrStr.
 
 %%% Internal functions
 
-parse_loop(S, Anchors0, Acc, InMapping, IsMapKey) ->
-    {Res, Bin, Flags} = S,
+%% N is the number of nodes in Acc with every alias expanded; a
+%% document with nested aliases is small in memory but can expand to
+%% an exponential number of nodes.
+parse_loop(S, Anchors0, Acc, N, InMapping, IsMapKey) ->
+    {Res, Bin, Flags, Max} = S,
     Event = get_next_event(Res, Bin, int_from_bool(InMapping andalso IsMapKey)),
     case Event of
         {sequence_start, Anchor} ->
-            {Term, Anchors1} = parse_loop(S, Anchors0, [], false, false),
-            Anchors2 = add_anchor(Anchor, Term, Anchors1),
-            parse_loop(S, Anchors2, [Term | Acc], InMapping, not IsMapKey);
+            {Term, Size, Anchors1} = parse_loop(S, Anchors0, [], 0, false, false),
+            Anchors2 = add_anchor(Anchor, Term, Size, Anchors1),
+            parse_loop(S, Anchors2, [Term | Acc], add_nodes(N, Size, Max, 0),
+                       InMapping, not IsMapKey);
         sequence_end ->
-            {lists:reverse(Acc), Anchors0};
+            {lists:reverse(Acc), N + 1, Anchors0};
         {mapping_start, Anchor} ->
-            {Term, Anchors1} = parse_loop(S, Anchors0, [], true, true),
-            Anchors2 = add_anchor(Anchor, Term, Anchors1),
-            parse_loop(S, Anchors2, [Term | Acc], InMapping, not IsMapKey);
+            {Term, Size, Anchors1} = parse_loop(S, Anchors0, [], 0, true, true),
+            Anchors2 = add_anchor(Anchor, Term, Size, Anchors1),
+            parse_loop(S, Anchors2, [Term | Acc], add_nodes(N, Size, Max, 0),
+                       InMapping, not IsMapKey);
         mapping_end ->
-            {mk_map(Acc, Flags), Anchors0};
+            {mk_map(Acc, Flags), N + 1, Anchors0};
         {scalar, Anchor, Term} ->
-            Anchors1 = add_anchor(Anchor, Term, Anchors0),
-            parse_loop(S, Anchors1, [Term | Acc], InMapping, not IsMapKey);
+            Anchors1 = add_anchor(Anchor, Term, 1, Anchors0),
+            parse_loop(S, Anchors1, [Term | Acc], N + 1, InMapping, not IsMapKey);
         {alias, Anchor, Line} ->
-            Term = get_anchor(Anchor, Line, Anchors0),
-            parse_loop(S, Anchors0, [Term | Acc], InMapping, not IsMapKey);
+            {Term, Size} = get_anchor(Anchor, Line, Anchors0),
+            parse_loop(S, Anchors0, [Term | Acc], add_nodes(N, Size, Max, Line),
+                       InMapping, not IsMapKey);
         eof ->
-            {lists:reverse(Acc), Anchors0};
+            {lists:reverse(Acc), N, Anchors0};
         {error, Line, Problem, Line, Context} ->
             EStr =
                 iolist_to_binary(
@@ -175,13 +186,18 @@ parse_loop(S, Anchors0, Acc, InMapping, IsMapKey) ->
             throw(Error)
     end.
 
+add_nodes(N, Size, Max, Line) when Max /= infinity, N + Size > Max ->
+    throw({error, Line, too_many_nodes});
+add_nodes(N, Size, _Max, _Line) ->
+    N + Size.
+
 new_anchors() ->
     #{}.
 
-add_anchor(undefined, _Term, Anchors) ->
+add_anchor(undefined, _Term, _Size, Anchors) ->
     Anchors;
-add_anchor(Anchor, Term, Anchors) ->
-    Anchors#{Anchor => Term}.
+add_anchor(Anchor, Term, Size, Anchors) ->
+    Anchors#{Anchor => {Term, Size}}.
 
 get_anchor(Anchor, Line, Anchors) ->
     case maps:get(Anchor, Anchors, undefined) of
