@@ -230,4 +230,10 @@ alias_expansion_limit_test() ->
     ?assertMatch({error, _, too_many_nodes},
                  eyaml:parse(Doc, #{max_nodes => 100000})),
     ?assertMatch({ok, [#{<<"b">> := [1, 2]}]},
-                 eyaml:parse(<<"a: &x [1, 2]\nb: *x\n">>, #{max_nodes => 100})).
+                 eyaml:parse(<<"a: &x [1, 2]\nb: *x\n">>, #{max_nodes => 9})),
+    ?assertMatch({error, 1, too_many_nodes},
+                 eyaml:parse(<<"a: &x [1, 2]\nb: *x\n">>, #{max_nodes => 8})),
+    ?assertMatch({ok, [1, 2]},
+                 eyaml:parse(<<"--- 1\n--- 2\n">>, #{max_nodes => 2})),
+    ?assertMatch({error, _, too_many_nodes},
+                 eyaml:parse(<<"--- 1\n--- 2\n">>, #{max_nodes => 1})).
