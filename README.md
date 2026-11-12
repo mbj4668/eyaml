@@ -188,6 +188,54 @@ Convert YAML mappings into Erlang lists.
        <<"c">> => null}]}
 ```
 
+## Option `max_nodes`
+
+Limit the size of the parsed term.
+
+An alias is expanded by sharing the anchored term, so a small document
+can describe a term that is very large once it is traversed, printed
+or copied:
+
+```yaml
+a: &a [x, x, x, x, x, x, x, x, x, x]
+b: &b [*a, *a, *a, *a, *a, *a, *a, *a, *a, *a]
+c: &c [*b, *b, *b, *b, *b, *b, *b, *b, *b, *b]
+d: &d [*c, *c, *c, *c, *c, *c, *c, *c, *c, *c]
+```
+
+Each level is ten times larger than the previous one; ten such lines
+give more than 10^10 nodes.
+
+With `max_nodes`, the parser counts the nodes of the input and fails
+with `{error, Line, too_many_nodes}` when there are more than the
+given number.  A node is a scalar, a sequence or a mapping.  A
+sequence counts as one node plus its entries, and a mapping as one
+node plus its keys and values.  An alias counts as the term it refers
+to, as if the term had been written out in its place.  The count
+covers all documents in the input.
+
+```erlang
+
+10> eyaml:parse(<<"a: 1\nb: [x, y]\n">>, #{max_nodes => 7}).
+{ok,[#{<<"a">> => 1,<<"b">> => [<<"x">>,<<"y">>]}]}
+11> eyaml:parse(<<"a: &x [1, 2]\nb: *x\n">>, #{max_nodes => 8}).
+{error,1,too_many_nodes}
+
+```
+
+The first document has 7 nodes: the mapping, the keys `a` and `b`, the
+value `1`, and the sequence with its two entries.  The second has 9,
+since the sequence of 3 nodes is counted both at `a` and at `b`.
+
+An input without aliases has at most about one node per byte, so a
+limit that is equal to the maximum size in bytes of the input the
+application accepts never rejects such an input, and bounds the term
+to what an input of that size could have described without aliases.
+A lower limit can be used when the expected size of the documents is
+known.
+
+The default is `infinity`, which means that there is no limit.
+
 ## Development
 
 ### Run tests
