@@ -1,8 +1,11 @@
 -module(eyaml).
 
--export([parse/1, parse/2,
-         parse_file/1, parse_file/2,
-         fmt_error/1, fmt_err/1]).
+-export([
+    parse/1, parse/2,
+    parse_file/1, parse_file/2,
+    fmt_error/1,
+    fmt_err/1
+]).
 
 -export_type([eyaml/0, eyaml_seq/0, eyaml_map/0, eyaml_scalar/0]).
 
@@ -15,7 +18,8 @@
 -define(F_KEY_AS_EXISTING_ATOM, 1 bsl 0).
 -define(F_MAPPING_AS_LIST, 1 bsl 1).
 
--define(bit_is_set(Fs, F), ((Fs) band (F) =/= 0)). % any bit in F is set in Fs
+% any bit in F is set in Fs
+-define(bit_is_set(Fs, F), ((Fs) band (F) =/= 0)).
 
 -type eyaml() :: eyaml_seq() | eyaml_map() | eyaml_scalar().
 
@@ -23,18 +27,26 @@
 
 %% atom() below is only returned if parsing with option `key_as_existing_atom`.
 %% KVL below is only returned if parsing with option `mapping_as_list`.
--type eyaml_map() :: #{eyaml() | atom() => eyaml()}
-                   | [{eyaml() | atom(), eyaml()}].
+-type eyaml_map() ::
+    #{eyaml() | atom() => eyaml()}
+    | [{eyaml() | atom(), eyaml()}].
 
--type eyaml_scalar() :: fail_safe_scalar()
-                      | json_scalar()
-                      | core_scalar().
+-type eyaml_scalar() ::
+    fail_safe_scalar()
+    | json_scalar()
+    | core_scalar().
 
 -type fail_safe_scalar() :: binary().
 
--type json_scalar() :: fail_safe_scalar()
-                     | 'null' | integer() | boolean()
-                     | float() | 'inf' | '-inf' | 'nan'.
+-type json_scalar() ::
+    fail_safe_scalar()
+    | 'null'
+    | integer()
+    | boolean()
+    | float()
+    | 'inf'
+    | '-inf'
+    | 'nan'.
 
 -type core_scalar() :: json_scalar().
 
@@ -71,25 +83,27 @@
 %%     mapping; an alias counts as the nodes of the term it refers to.
 %%     If the input has more nodes, parsing fails with the error
 %%     'too_many_nodes'.  The default is 'infinity'.
--type parse_opts() :: #{'key_as_existing_atom' => boolean(),
-                        'mapping_as_list' => boolean(),
-                        'schema' => 'fail_safe' | 'json' | 'core',
-                        'max_nodes' => pos_integer() | 'infinity'}.
+-type parse_opts() :: #{
+    'key_as_existing_atom' => boolean(),
+    'mapping_as_list' => boolean(),
+    'schema' => 'fail_safe' | 'json' | 'core',
+    'max_nodes' => pos_integer() | 'infinity'
+}.
 
 -type parse_ret() ::
-        {ok, Documents :: [eyaml()]}
-      | parse_error().
+    {ok, Documents :: [eyaml()]}
+    | parse_error().
 
 -type parse_error() ::
-        {error, Line :: integer(), parse_err()}.
+    {error, Line :: integer(), parse_err()}.
 
 -type parse_err() ::
-        {no_such_anchor, Anchor :: binary()}
-      | too_many_nodes
-      | binary().
+    {no_such_anchor, Anchor :: binary()}
+    | too_many_nodes
+    | binary().
 
 -type read_file_error() ::
-        {error, file:posix() | badarg | terminated | system_limit}.
+    {error, file:posix() | badarg | terminated | system_limit}.
 
 -spec parse(Str :: iodata()) -> parse_ret().
 parse(Str) ->
@@ -98,9 +112,10 @@ parse(Str) ->
 -spec parse(Str :: iodata(), parse_opts()) -> parse_ret().
 parse(Str, Opts) ->
     Bin =
-        if is_binary(Str) ->
+        if
+            is_binary(Str) ->
                 Str;
-           is_list(Str) ->
+            is_list(Str) ->
                 list_to_binary(Str)
         end,
     {Schema, Flags} = parse_opts(Opts),
@@ -116,12 +131,12 @@ parse(Str, Opts) ->
     end.
 
 -spec parse_file(FName :: file:name_all()) ->
-        parse_ret() | read_file_error().
+    parse_ret() | read_file_error().
 parse_file(FName) ->
     parse_file(FName, #{}).
 
 -spec parse_file(FName :: file:name_all(), parse_opts()) ->
-        parse_ret() | read_file_error().
+    parse_ret() | read_file_error().
 parse_file(FName, Opts) when is_map(Opts) ->
     case file:read_file(FName) of
         {ok, Bin} ->
@@ -180,14 +195,20 @@ parse_loop(S, Anchors0, Acc, N0, InMapping, IsMapKey) ->
         {error, Line, Problem, Line, Context} ->
             EStr =
                 iolist_to_binary(
-                  io_lib:format("~s ~s",
-                                [Context, Problem])),
+                    io_lib:format(
+                        "~s ~s",
+                        [Context, Problem]
+                    )
+                ),
             throw({error, Line, EStr});
         {error, Line, Problem, CLine, Context} ->
             EStr =
                 iolist_to_binary(
-                  io_lib:format("~s (starting at line ~w) ~s",
-                                [Context, CLine, Problem])),
+                    io_lib:format(
+                        "~s (starting at line ~w) ~s",
+                        [Context, CLine, Problem]
+                    )
+                ),
             throw({error, Line, EStr});
         {error, _Line, _Problem} = Error ->
             throw(Error)
@@ -230,14 +251,13 @@ parse_opts(Opts) ->
                 ?F_KEY_AS_EXISTING_ATOM;
             false ->
                 0
-        end
-        bor
-        case maps:get(mapping_as_list, Opts, false) of
-            true ->
-                ?F_MAPPING_AS_LIST;
-            false ->
-                0
-        end,
+        end bor
+            case maps:get(mapping_as_list, Opts, false) of
+                true ->
+                    ?F_MAPPING_AS_LIST;
+                false ->
+                    0
+            end,
     {Schema, Flags}.
 
 int_from_bool(true) -> 1;
@@ -245,11 +265,12 @@ int_from_bool(false) -> 0.
 
 mk_map(L, Flags) ->
     KVL = mk_map_list(L),
-    if ?bit_is_set(?F_MAPPING_AS_LIST, Flags) ->
+    if
+        ?bit_is_set(?F_MAPPING_AS_LIST, Flags) ->
             %% `reverse` is strictly speaking not necessary,
             %% since mappings don't have an order
             lists:reverse(KVL);
-       true ->
+        true ->
             maps:from_list(KVL)
     end.
 
@@ -273,4 +294,3 @@ get_next_event(_State, _Bin, _IsMapKey) ->
 
 nif_only() ->
     erlang:nif_error(eyaml_nif_not_loaded).
-
