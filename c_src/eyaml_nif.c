@@ -402,6 +402,21 @@ mk_error(ErlNifEnv *env,
          yaml_parser_t *parser)
 {
     /* NOTE: line numbers start at 0 in libyaml! */
+    if (!parser->problem) {
+        if (parser->error == YAML_MEMORY_ERROR) {
+            return enif_make_tuple3(
+                env,
+                am_error,
+                enif_make_uint(env, 0),
+                mk_binary(env, "memory error"));
+        } else {
+            return enif_make_tuple3(
+                env,
+                am_error,
+                enif_make_uint(env, 0),
+                mk_binary(env, "unknown error"));
+        }
+    }
     if (parser->context) {
         return enif_make_tuple5(
             env,
