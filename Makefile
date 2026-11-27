@@ -1,6 +1,6 @@
 DESCRIPTION = YAML parser
 BUILD_DEPS = libyaml
-LIBYAML_VSN ?= 0.2.5
+LIBYAML_VSN ?= 0.2.7
 dep_libyaml = git https://github.com/yaml/libyaml $(LIBYAML_VSN)
 
 include erl.mk
